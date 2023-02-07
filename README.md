@@ -1,6 +1,7 @@
 # Solving Gym with DDPG
 ## Overview
-This repository showcases an adapted implementation of the Deep Deterministic Policy Gradient (DDPG) algorithm for solving various environments provided by OpenAI Gym.
+This repository showcases an adapted implementation of the [Deep Deterministic Policy Gradient (DDPG)](https://arxiv.org/abs/1509.02971) algorithm for solving various environments provided by [OpenAI Gym](https://gym.openai.com/)
+.
 
 ## Introduction to OpenAI Gym
 OpenAI Gym is a toolkit for developing and comparing reinforcement learning algorithms. It provides a diverse range of environments for the development and testing of reinforcement learning models.
