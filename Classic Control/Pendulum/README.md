@@ -1,3 +1,3 @@
 **The solved environment**
 
-![](https://github.com/Your_Repository_Name/Your_GIF_Name.gif)
+![](https://github.com/Jens21/Solving-Gym-with-DDPG/blob/main/Classic%20Control/Pendulum/screen.gif)
