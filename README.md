@@ -12,6 +12,11 @@ All of the environments can be solved using a standard CPU, with completion time
 ## Our Solutions
 Here are a few of our solutions to the various environments provided by OpenAI Gym:
 
-<img src="https://github.com/Jens21/Solving-Gym-with-DDPG/blob/main/Box2D/LunarLander/doc/screen.gif" width="300">
-<img src="https://github.com/Jens21/Solving-Gym-with-DDPG/blob/main/Classic%20Control/Pendulum/doc/screen.gif" width="300">
-<img src="https://github.com/Jens21/Solving-Gym-with-DDPG/blob/main/Classic%20Control/Mountain_Car/doc/screen.gif" width="300">
+<p align="center">
+  <img src="https://github.com/Jens21/Solving-Gym-with-DDPG/blob/main/Box2D/LunarLander/doc/screen.gif" width="300">
+  <img src="https://github.com/Jens21/Solving-Gym-with-DDPG/blob/main/Classic%20Control/Pendulum/doc/screen.gif" width="300">
+</p>
+
+<p align="center">
+  <img src="https://github.com/Jens21/Solving-Gym-with-DDPG/blob/main/Classic%20Control/Mountain_Car/doc/screen.gif" width="300">
+</p>
