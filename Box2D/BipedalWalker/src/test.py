@@ -2,7 +2,7 @@ import torch as th
 import numpy as np
 
 th.manual_seed(12345)
-np.random.seed(12345)
+np.random.seed(54329)
 
 import gym
 
@@ -14,8 +14,7 @@ def scale_observation(obs):
     obs /= divider
     return obs
 
-env = gym.make('LunarLander-v2', continuous=True, render_mode='human')
-# env = gym.make('LunarLander-v2', continuous=True)
+env = gym.make('BipedalWalker-v3', render_mode='human')
 seed = int(np.random.randint(0,1e8,1))
 obs, _ = env.reset(seed=seed)
 obs = scale_observation(obs)
@@ -32,7 +31,7 @@ if __name__ == '__main__':
     while rounds < 11:
         action = evaluater.get_network_action(obs)
         reward = 0
-        for i in range(2):
+        for i in range(5):
             obs, r, done, _, _ = env.step(action)
             obs = scale_observation(obs)
             reward += r
@@ -40,7 +39,7 @@ if __name__ == '__main__':
                 break
         current_episode_reward += reward
 
-        steps_since_last_reset += 2
+        steps_since_last_reset += 5
 
         if done or steps_since_last_reset > 2_000:
             seed = int(np.random.randint(0, 1e8, 1))

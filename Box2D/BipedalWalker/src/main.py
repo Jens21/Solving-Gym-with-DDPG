@@ -12,26 +12,26 @@ from replay_buffer import ReplayBuffer
 from trainer import Trainer
 from evaluater import Evaluater
 
-N_TOTAL = 100_000
+N_TOTAL = 45_000
 BATCH_SIZE = 64
-GAMMA = 0.95
+GAMMA = 0.9
 TAU = 0.01
 
-divider = np.array([1.5, 1.5, 5., 5., 3.14, 5., 1., 1.])
+divider = np.array([3.14, 5., 5., 5., 3.14, 5., 3.14, 5., 5., 3.14, 5., 3.14, 5., 5., 1., 1., 1., 1., 1., 1., 1., 1., 1., 1.])
 def scale_observation(obs):
     obs /= divider
     return obs
 
-env = gym.make('LunarLander-v2', continuous=True)
+env = gym.make('BipedalWalker-v3', render_mode='human')
 seed = int(np.random.randint(0, 1e8, 1))
 obs, _ = env.reset(seed=seed)
 obs = scale_observation(obs)
-replay_buffer = ReplayBuffer(buffer_size=100_000, observation_size=8, action_size=2)
+replay_buffer = ReplayBuffer(buffer_size=100_000, observation_size=24, action_size=4)
 
-network = Network(observation_size=8, action_size=2)
+network = Network(observation_size=24, action_size=4)
 
-trainer = Trainer(network, replay_buffer, BATCH_SIZE, GAMMA, TAU, N_TOTAL)
-evaluater = Evaluater(network, action_size=2)
+trainer = Trainer(network, replay_buffer, BATCH_SIZE, GAMMA, TAU)
+evaluater = Evaluater(network, action_size=4)
 
 rewards = []
 current_episode_reward = 0
@@ -57,7 +57,7 @@ def plot_rewards():
 
 if __name__ == '__main__':
     for itt in range(N_TOTAL):
-        action = evaluater.get_action(obs, itt)
+        action = evaluater.get_network_action(obs)
         reward = 0
         for i in range(5):
             next_obs, r, done, _, _ = env.step(action)
@@ -66,15 +66,12 @@ if __name__ == '__main__':
                 break
         next_obs = scale_observation(next_obs)
         current_episode_reward += reward
-        # reward = np.clip(reward, -10, 10)
-        reward = reward/250
+        reward = reward/300
         add_sample_to_replay_buffer(obs, action, reward, done, next_obs)
         obs = next_obs
 
         steps_since_last_reset += 5
 
-        # ramping_gamma = GAMMA if itt>10_000 else 0.5
-        # trainer.gamma = ramping_gamma
         trainer.train()
 
         if done or steps_since_last_reset > 1_000:

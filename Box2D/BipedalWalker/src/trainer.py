@@ -8,7 +8,7 @@ class Trainer():
     losses_actor = []
     losses_critic = []
 
-    def __init__(self, network, replay_buffer, batch_size, gamma, tau, n_total_iterations):
+    def __init__(self, network, replay_buffer, batch_size, gamma, tau):
         self.network = network
         self.replay_buffer = replay_buffer
         self.batch_size = batch_size
@@ -16,10 +16,7 @@ class Trainer():
         self.tau = tau
 
         self.optimizer_actor = th.optim.AdamW(network.actor_policy.parameters(), lr=0.001, weight_decay=1e-2)
-        self.optimizer_critic = th.optim.AdamW(network.critic_policy.parameters(), lr=0.002, weight_decay=1e-2)
-
-        self.scheduler_actor = th.optim.lr_scheduler.CosineAnnealingLR(self.optimizer_actor, n_total_iterations)
-        self.scheduler_critic = th.optim.lr_scheduler.CosineAnnealingLR(self.optimizer_actor, n_total_iterations)
+        self.optimizer_critic = th.optim.AdamW(network.critic_policy.parameters(), lr=0.0005, weight_decay=1e-2)
 
     def save_losses(self):
         plt.figure(figsize=(8, 8))
@@ -76,8 +73,5 @@ class Trainer():
 
         self.losses_actor.append(loss_actor)
         self.losses_critic.append(loss_critic)
-
-        self.scheduler_actor.step()
-        self.scheduler_critic.step()
 
         self.soft_update()
