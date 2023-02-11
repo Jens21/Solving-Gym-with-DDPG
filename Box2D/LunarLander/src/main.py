@@ -37,14 +37,15 @@ rewards = []
 current_episode_reward = 0
 steps_since_last_reset = 0
 
-def add_sample_to_replay_buffer(obs, action, reward, done, next_obs):
+def add_sample_to_replay_buffer(obs, action, reward, done, next_obs, hidden_state):
     state = th.from_numpy(obs).clone()
     action = th.from_numpy(action).clone()
     reward = th.FloatTensor([reward]).clone()
     done = th.FloatTensor([done]).clone()
     next_state = th.from_numpy(next_obs).clone()
+    hidden_state = th.from_numpy(hidden_state).clone()
 
-    replay_buffer.push(state, action, reward, done, next_state)
+    replay_buffer.push(state, action, reward, done, next_state, hidden_state)
 
 def plot_rewards():
     plt.figure(figsize=(8, 8))
@@ -57,7 +58,7 @@ def plot_rewards():
 
 if __name__ == '__main__':
     for itt in range(N_TOTAL):
-        action = evaluater.get_action(obs, itt)
+        action, hidden_state = evaluater.get_action(obs, itt)
         reward = 0
         for i in range(5):
             next_obs, r, done, _, _ = env.step(action)
@@ -68,7 +69,7 @@ if __name__ == '__main__':
         current_episode_reward += reward
         # reward = np.clip(reward, -10, 10)
         reward = reward/250
-        add_sample_to_replay_buffer(obs, action, reward, done, next_obs)
+        add_sample_to_replay_buffer(obs, action, reward, done, next_obs, hidden_state)
         obs = next_obs
 
         steps_since_last_reset += 5

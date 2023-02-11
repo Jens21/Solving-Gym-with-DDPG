@@ -1,77 +1,144 @@
+import gym
 import torch as th
-import torch.nn.functional as F
-import matplotlib.pyplot as plt
 import numpy as np
+import matplotlib.pyplot as plt
 
-class Trainer():
+from replay_memory import ReplayMemory
+from ddpg_network import Actor, Critic
 
-    losses_actor = []
-    losses_critic = []
+GAMMA = 0.95
+BATCH_SIZE = 64
+N_TOTAL = 200_000
+BUFFER_SIZE = 300_000
+WARMUP = 1_000
 
-    def __init__(self, network, replay_buffer, batch_size, gamma, tau):
-        self.network = network
-        self.replay_buffer = replay_buffer
-        self.batch_size = batch_size
-        self.gamma = gamma
-        self.tau = tau
+def edit_observation(obs):
+    obs = th.from_numpy(obs)
+    ranges = th.Tensor([3.14, 5., 5., 5., 3.14, 5., 3.14, 5., 5., 3.14, 5., 3.14, 5., 5., 1., 1., 1., 1., 1., 1., 1., 1., 1., 1.])
+    obs /= ranges
 
-        self.optimizer_actor = th.optim.AdamW(network.actor_policy.parameters(), lr=0.001, weight_decay=1e-2)
-        self.optimizer_critic = th.optim.AdamW(network.critic_policy.parameters(), lr=0.0005, weight_decay=1e-2)
+    return obs
 
-    def save_losses(self):
-        plt.figure(figsize=(8, 8))
-        plt.plot(np.arange(len(self.losses_actor)), self.losses_actor)
-        plt.savefig('actor losses.png')
-        plt.clf()
-        plt.close()
+def add_to_replay_buffer(obs, action, reward, done, next_obs, replay_mem):
+    action, reward, done = th.tensor(action), th.tensor(reward), th.tensor(done)
+    replay_mem.push_sample(obs, action, reward, done, next_obs)
 
-        plt.figure(figsize=(8, 8))
-        plt.plot(np.arange(len(self.losses_critic)), self.losses_critic)
-        plt.savefig('critic losses.png')
-        plt.clf()
-        plt.close()
+def soft_update(critic_target, critic_policy, actor_target, actor_policy):
+    tau = 0.1
+    for target_param, policy_param in zip(critic_target.parameters(), critic_policy.parameters()):
+        target_param.data.copy_(tau * policy_param.data + (1.0 - tau) * target_param.data)
 
-    def train_critic(self, states, actions, rewards, dones, next_states):
-        self.optimizer_critic.zero_grad()
-        qvalues = self.network.critic_policy(states, actions).flatten()
-        with th.no_grad():
-            actor_out = self.network.actor_target(next_states)
-            qtargets = rewards + self.gamma * self.network.critic_target(next_states, actor_out).flatten() * (1 - dones)
+    tau = 1
+    for target_param, policy_param in zip(actor_target.parameters(), actor_policy.parameters()):
+        target_param.data.copy_(tau * policy_param.data + (1.0 - tau) * target_param.data)
 
-        loss_critic = F.mse_loss(qvalues, qtargets)
+def train(replay_mem, optimizer_critic, optimizer_actor, actor_target, actor_policy, critic_policy, critic_target):
+    obs, actions, rewards, dones, next_obs = replay_mem.get_sample(BATCH_SIZE)
 
-        loss_critic.backward()
-        self.optimizer_critic.step()
+    # Compute Q-values for current state and next state
+    q_values = critic_policy(obs, actions).flatten()
+    next_action = actor_target(next_obs)
+    next_q_values = critic_target(next_obs, next_action).detach().flatten()
 
-        return loss_critic.item()
+    targets = rewards + GAMMA * next_q_values * (1 - dones)
 
-    def train_actor(self, states, actions, rewards, dones, next_states):
-        self.optimizer_actor.zero_grad()
-        actor_out = self.network.actor_policy(states)
-        critic_out = self.network.critic_policy(states, actor_out)
-        loss_actor = -critic_out.mean()
+    # Compute loss and update network parameters
+    loss_critic = th.nn.functional.mse_loss(q_values, targets)
+    optimizer_critic.zero_grad()
+    loss_critic.backward()
+    optimizer_critic.step()
 
-        loss_actor.backward()
-        self.optimizer_actor.step()
+    # train the actor
+    action = actor_policy(obs)
+    q_values = critic_policy(obs, action)
+    loss_actor = -q_values.mean()
+    optimizer_actor.zero_grad()
+    loss_actor.backward()
+    optimizer_actor.step()
 
-        return loss_actor.item()
+    soft_update(critic_target, critic_policy, actor_target, actor_policy)
 
-    def soft_update(self):
-        self.tau = 0.5
-        for target_param, policy_param in zip(self.network.critic_target.parameters(), self.network.critic_policy.parameters()):
-            target_param.data.copy_(self.tau * policy_param.data + (1.0 - self.tau) * target_param.data)
+    return loss_critic.item() + loss_actor.item()
 
-        self.tau = 1
-        for target_param, policy_param in zip(self.network.actor_target.parameters(), self.network.actor_policy.parameters()):
-            target_param.data.copy_(self.tau * policy_param.data + (1.0 - self.tau) * target_param.data)
+def edit_reward(reward):
+    reward /= 20
+    reward = np.clip(reward, -1, 1)
 
-    def train(self):
-        states, actions, rewards, dones, next_states = self.replay_buffer.sample(self.batch_size)
+    return reward
 
-        loss_critic = self.train_critic(states, actions, rewards, dones, next_states)
-        loss_actor = self.train_actor(states, actions, rewards, dones, next_states)
+def make_plots(rewards, losses):
+    plt.figure(figsize = (7, 7))
+    plt.plot(np.arange(len(rewards)), rewards)
+    plt.savefig('rewards.png')
+    plt.clf()
+    plt.close()
 
-        self.losses_actor.append(loss_actor)
-        self.losses_critic.append(loss_critic)
+    plt.figure(figsize = (7, 7))
+    plt.plot(np.arange(len(losses)), losses)
+    plt.savefig('losses.png')
+    plt.clf()
+    plt.close()
 
-        self.soft_update()
+def sample_action(obs, net_policy, itt):
+    threshold = max(0.1, 1 - itt / 100_000)
+    obs = obs[None]
+    action = net_policy(obs)[0].detach().numpy()
+    action += np.random.uniform(-threshold, threshold, action.shape)
+    action = np.clip(-1, 1, action)
+
+    return action, 0
+
+def main():
+    replay_mem = ReplayMemory(buffer_size=BUFFER_SIZE)
+
+    actor_policy, actor_target = Actor(input_size=24, action_size=4), Actor(input_size=24, action_size=4)
+    actor_target.load_state_dict(actor_policy.state_dict())
+    critic_policy, critic_target = Critic(input_size=24, action_size=4), Critic(input_size=24, action_size=4)
+    critic_target.load_state_dict(critic_policy.state_dict())
+    optimizer_actor = th.optim.AdamW(actor_policy.parameters(), lr=2e-3, weight_decay=1e-2)
+    optimizer_critic = th.optim.AdamW(critic_policy.parameters(), lr=1e-3, weight_decay=1e-2)
+
+    env = gym.make('BipedalWalker-v3')
+    obs, _ = env.reset()
+    obs = edit_observation(obs)
+
+    rewards = []
+    reward_per_round = 0
+    losses = []
+    itt_since_reset = 0
+    for itt in range(N_TOTAL):
+        action, action_idx = sample_action(obs, actor_policy, itt)
+        reward = 0
+        for _ in range(5):
+            next_obs, r, done, _, _ = env.step(action)
+            reward += r
+            if done:
+                break
+        reward_per_round += reward
+        next_obs = edit_observation(next_obs)
+        reward = edit_reward(reward)
+        add_to_replay_buffer(obs, action, reward, done, next_obs, replay_mem)
+        obs = next_obs
+        itt_since_reset += 1
+
+        if itt >= WARMUP:
+            loss = train(replay_mem, optimizer_critic, optimizer_actor, actor_target, actor_policy, critic_policy, critic_target)
+            losses.append(loss)
+
+        if done or itt_since_reset>120:
+            obs, _ = env.reset()
+            obs = edit_observation(obs)
+            print('Iteration: {}\tReward: {}'.format(itt, reward_per_round))
+            rewards.append(reward_per_round)
+            reward_per_round = 0
+            itt_since_reset = 0
+
+        if itt % 10_000 == 0:
+            make_plots(rewards, losses)
+            th.save(critic_policy.state_dict(), 'critic.pth')
+            th.save(actor_policy.state_dict(), 'actor.pth')
+
+    env.close()
+
+if __name__ == '__main__':
+    main()
