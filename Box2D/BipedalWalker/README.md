@@ -11,7 +11,7 @@ To deal with the issue of small rewards per environment step, we performed 5 env
 To handle the large differences in the scale of observations, we normalized them so that their maximum absolute value is 1.
 To address the issue of large rewards, we divided the rewards by 20.
 ## Results
-Our solution was able to achieve a score of [insert score here] on the BipedalWalker-v3 environment.
+Our solution was able to achieve a score of 300 points on the BipedalWalker-v3 environment, which is the goal for solving according to the official website.
 
 Here's an animated gif showing the agent walking in the environment:
 
