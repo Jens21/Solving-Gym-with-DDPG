@@ -10,7 +10,7 @@ To address some of the challenges in the environment, we made the following adju
 To deal with the issue of small rewards per environment step, we performed 2 environment steps for each action calculated by the network.
 To handle the large differences in the scale of observations, we normalized them so that their maximum absolute value is 1.
 To address the issue of large rewards, we divided the rewards by 200.
-Results
+## Results
 Our solution successfully holds up the pendulum for over 1000 time steps, which is when the environment terminates. The agent in the environment can be seen in the following animation:
 
 <p align="center">
