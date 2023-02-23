@@ -24,7 +24,7 @@ def sample_action(obs, net_policy, itt):
     obs = obs[None]
     action = net_policy(obs)[0].detach().numpy()
     action += np.random.uniform(-threshold, threshold, action.shape)
-    action = np.clip(-1, 1, action)
+    action = np.clip(action, -1, 1)
 
     return action, 0
 

@@ -5,11 +5,11 @@ class Actor(th.nn.Module):
         super(Actor, self).__init__()
 
         self.model = th.nn.Sequential(
-            th.nn.Linear(input_size, 64),
+            th.nn.Linear(input_size, 16),
             th.nn.ReLU(),
-            th.nn.Linear(64, 64),
+            th.nn.Linear(16, 16),
             th.nn.ReLU(),
-            th.nn.Linear(64, action_size),
+            th.nn.Linear(16, action_size),
             th.nn.Tanh()
         )
     def forward(self, obs):
@@ -20,11 +20,11 @@ class Critic(th.nn.Module):
         super(Critic, self).__init__()
 
         self.model = th.nn.Sequential(
-            th.nn.Linear(input_size + action_size, 64),
+            th.nn.Linear(input_size + action_size, 16),
             th.nn.LeakyReLU(),
-            th.nn.Linear(64, 64),
+            th.nn.Linear(16, 16),
             th.nn.LeakyReLU(),
-            th.nn.Linear(64, 1),
+            th.nn.Linear(16, 1),
         )
     def forward(self, obs, action):
         inp = th.concat([obs, action], dim=1)
