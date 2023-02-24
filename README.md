@@ -16,9 +16,18 @@ The solutions provided in this repository can be run on a standard CPU, with com
 Here are a few examples of our solutions to the various environments provided by OpenAI Gym:
 
 <p align="center">
-  <img src="https://github.com/Jens21/Solving-Gym-with-DDPG/blob/main/Box2D/LunarLander/doc/screen.gif" width="300">
-  <img src="https://github.com/Jens21/Solving-Gym-with-DDPG/blob/main/Classic%20Control/Pendulum/doc/screen.gif" width="300">
+  <img src="https://github.com/Jens21/Solving-Gym-with-DDPG/blob/main/MuJoCo/InvertedDoublePendulum/doc/screen.gif" width="300">
+  <img src="https://github.com/Jens21/Solving-Gym-with-DDPG/blob/main/MuJoCo/InvertedPendulum/doc/screen.gif" width="300">
+</p>  
+<p align="center">
+  <img src="https://github.com/Jens21/Solving-Gym-with-DDPG/blob/main/MuJoCo/Reacher/doc/screen.gif" width="300">
+  <img src="https://github.com/Jens21/Solving-Gym-with-DDPG/blob/main/MuJoCo/Swimmer/doc/screen.gif" width="300">
 </p>
 <p align="center">
+  <img src="https://github.com/Jens21/Solving-Gym-with-DDPG/blob/main/Box2D/LunarLander/doc/screen.gif" width="300">
+  <img src="https://github.com/Jens21/Solving-Gym-with-DDPG/blob/main/Box2D/BipedalWalker/doc/screen.gif" width="300">
+</p>
+<p align="center">
+  <img src="https://github.com/Jens21/Solving-Gym-with-DDPG/blob/main/Classic%20Control/Pendulum/doc/screen.gif" width="300">
   <img src="https://github.com/Jens21/Solving-Gym-with-DDPG/blob/main/Classic%20Control/Mountain_Car/doc/screen.gif" width="300">
 </p>
